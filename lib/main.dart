@@ -28,8 +28,8 @@ class Product {
   final double price;
   final String imageUrl;
   int quantity;
-  int likes;        // ✅ Jumlah like
-  bool isLiked;     // ✅ Status like (untuk ubah icon)
+  int likes;
+  bool isLiked;
   bool isSelected;
 
   Product({
@@ -38,8 +38,8 @@ class Product {
     required this.price,
     required this.imageUrl,
     this.quantity = 1,
-    this.likes = 10,      // Default like awal
-    this.isLiked = false, // Default belum di-like
+    this.likes = 10,
+    this.isLiked = false,
     this.isSelected = false,
   });
 }
@@ -53,7 +53,6 @@ class MyCartPage extends StatefulWidget {
 }
 
 class _MyCartPageState extends State<MyCartPage> {
-  // ✅ Data Produk Baru (Sepatu, Jam, Tas)
   final List<Product> products = [
     Product(
       name: 'Sepatu Sneakers',
@@ -87,31 +86,24 @@ class _MyCartPageState extends State<MyCartPage> {
     super.dispose();
   }
 
-  // --- LOGIKA INTERAKSI ---
-
-  // 1. Tap: Highlight border
   void _handleTap(int index) {
     setState(() {
       products[index].isSelected = !products[index].isSelected;
     });
   }
 
-  // ✅ 2. Double Tap: Toggle Like (+1 / -1) - TIDAK terkait quantity
   void _handleDoubleTap(int index) {
     setState(() {
       if (products[index].isLiked) {
-        // Jika sudah like, maka unlike (kurangi 1)
         products[index].isLiked = false;
         products[index].likes--;
       } else {
-        // Jika belum like, maka like (tambah 1)
         products[index].isLiked = true;
         products[index].likes++;
       }
     });
   }
 
-  // 3. Long Press: Info produk
   void _handleLongPress(int index) {
     setState(() {
       longPressMessage = 'Produk dipilih! ${products[index].name}';
@@ -127,14 +119,12 @@ class _MyCartPageState extends State<MyCartPage> {
     });
   }
 
-  // ✅ 4. Increment Quantity: HANYA menambah quantity, tidak menambah like
   void _incrementQuantity(int index) {
     setState(() {
       products[index].quantity++;
     });
   }
 
-  // ✅ 5. Decrement Quantity: HANYA mengurangi quantity, tidak mengurangi like
   void _decrementQuantity(int index) {
     if (products[index].quantity > 1) {
       setState(() {
@@ -143,7 +133,6 @@ class _MyCartPageState extends State<MyCartPage> {
     }
   }
 
-  // --- PERHITUNGAN TOTAL ---
   double get _totalPrice => products.fold(0, (sum, item) => sum + (item.price * item.quantity));
   int get _totalItems => products.fold(0, (sum, item) => sum + item.quantity);
 
@@ -173,26 +162,22 @@ class _MyCartPageState extends State<MyCartPage> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Breakpoint untuk Tablet/Desktop
             final isTablet = constraints.maxWidth > 600;
 
             return Column(
               children: [
-                // 1. HEADER SECTION
                 const _HeaderSection(),
 
-                // 2. NOTIFIKASI LONG PRESS
                 if (longPressMessage != null)
                   _NotificationBanner(message: longPressMessage!),
 
-                // 3. DAFTAR PRODUK (Responsif)
                 Expanded(
                   child: isTablet
                       ? GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 2.5,
+                      mainAxisExtent: 150,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
@@ -227,7 +212,6 @@ class _MyCartPageState extends State<MyCartPage> {
                   ),
                 ),
 
-                // 4. FOOTER CHECKOUT
                 _CheckoutFooter(
                   totalItems: _totalItems,
                   totalPrice: _formatCurrency(_totalPrice),
@@ -240,8 +224,6 @@ class _MyCartPageState extends State<MyCartPage> {
     );
   }
 }
-
-// --- WIDGET KOMPONEN REUSABLE ---
 
 class _HeaderSection extends StatelessWidget {
   const _HeaderSection();
@@ -337,12 +319,11 @@ class _ProductCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar Produk
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: SizedBox(
-                width: 80,
-                height: 80,
+                width: 70, // Dikurangi dari 80
+                height: 70,
                 child: Image.network(
                   product.imageUrl,
                   fit: BoxFit.cover,
@@ -353,9 +334,8 @@ class _ProductCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
 
-            // Info Produk
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,7 +348,7 @@ class _ProductCard extends StatelessWidget {
                         product.name,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 13,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -377,60 +357,56 @@ class _ProductCard extends StatelessWidget {
                         product.description,
                         style: TextStyle(
                           color: Colors.grey.shade600,
-                          fontSize: 12,
+                          fontSize: 11,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         _formatCurrency(product.price),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.blue,
-                          fontSize: 14,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
                   // Baris Like & Counter
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // ✅ Like Section (Icon berubah warna & jumlah like independen)
                       Flexible(
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              // Jika isLiked true -> icon full merah, else outline
                               product.isLiked ? Icons.favorite : Icons.favorite_border,
-                              size: 18,
+                              size: 16,
                               color: product.isLiked ? Colors.red : Colors.grey.shade400,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${product.likes}', // ✅ Hanya menampilkan jumlah like
+                              '${product.likes}',
                               style: TextStyle(
                                 color: product.isLiked ? Colors.red : Colors.grey.shade600,
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: product.isLiked ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // Counter Section (Tidak mempengaruhi like)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _CounterButton(icon: Icons.remove, onTap: onDecrement),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Text(
                               '${product.quantity}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
                           _CounterButton(icon: Icons.add, onTap: onIncrement),
@@ -459,12 +435,12 @@ class _CounterButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(3), // Padding dikurangi
         decoration: BoxDecoration(
           color: Colors.blue,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Icon(icon, size: 16, color: Colors.white),
+        child: Icon(icon, size: 14, color: Colors.white), // Icon diperkecil
       ),
     );
   }
